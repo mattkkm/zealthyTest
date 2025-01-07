@@ -52,7 +52,7 @@ export function AboutMeForm({ onSubmit, defaultValue = '', submitted }: AboutMeF
             </FormItem>
           )}
         />
-        {submitted ? <></> : <Button type="submit">Save & Continue</Button>}
+        {submitted ?<Button type="submit" disabled className="w-full">Saved</Button>  : <Button type="submit">Save & Continue</Button>}
       </form>
     </Form>
   )

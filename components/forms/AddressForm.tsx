@@ -28,6 +28,8 @@ type AddressFormProps = {
 }
 
 export function AddressForm({ onSubmit, submitted, defaultValues = {} }: AddressFormProps) {
+  console.log('submitted-',submitted)
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -98,7 +100,7 @@ export function AddressForm({ onSubmit, submitted, defaultValues = {} }: Address
             />
           </div>
         </div>
-        {submitted ? <></>: <Button type="submit" className="w-full">Save & Continue</Button>}
+        {submitted ? <Button type="submit" disabled className="w-full">Saved</Button> : <Button type="submit" className="w-full">Save & Continue</Button>}
       </form>
     </Form>
   )

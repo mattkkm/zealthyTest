@@ -52,7 +52,7 @@ export function BirthdateForm({ onSubmit, defaultValue, submitted }: BirthdateFo
             </FormItem>
           )}
         />
-        {submitted ? <></>: <Button type="submit" className="w-full">Save & Continue</Button>}
+        {submitted ? <Button type="submit" disabled className="w-full">Saved</Button> : <Button type="submit" className="w-full">Save & Continue</Button>}
       </form>
     </Form>
   )

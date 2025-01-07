@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AboutMeForm } from '@/components/forms/AboutMeForm'
 import { AddressForm } from '@/components/forms/AddressForm'
 import { BirthdateForm } from '@/components/forms/BirthdateForm'
+import { Button } from '@/components/ui/button'
 
 export default function StepPage({ params }: { params: Promise<{ step: string }> }) {
   const router = useRouter()
@@ -78,15 +79,32 @@ export default function StepPage({ params }: { params: Promise<{ step: string }>
       console.error('Error:', error)
     }
   }
-
+  console.log('submittedComponents-',submittedComponents)
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Step {step} of 3</CardTitle>
       </CardHeader>
       <CardContent className="space-y-8">
+
+        {components.length === 0 && (
+          <Button
+            onClick={() => {
+              const urlParams = new URLSearchParams(window.location.search)
+              const userId = urlParams.get('userId')
+              if (step < 3) {
+                router.push(`/onboarding/${step + 1}?userId=${userId}`)
+              } else {
+                router.push('/onboarding/complete') 
+              }
+            }}
+            className="w-full"
+          >
+            Continue
+          </Button>
+        )}
         {components.includes('about') && <AboutMeForm submitted={submittedComponents['about_me']} onSubmit={handleSubmit} />}
-        {components.includes('address') && <AddressForm submitted={submittedComponents['address']} onSubmit={handleSubmit} />}
+        {components.includes('address') && <AddressForm submitted={submittedComponents['street_address']} onSubmit={handleSubmit} />}
         {components.includes('birthdate') && <BirthdateForm submitted={submittedComponents['birthdate']} onSubmit={handleSubmit} />}
       </CardContent>
     </Card>

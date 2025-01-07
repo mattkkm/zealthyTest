@@ -1,5 +1,6 @@
 async function getData() {
-    const res = await fetch('/api/users', {
+  // console.log('process.env.NEXT_PUBLIC_SITE_URL-',process.env.NEXT_PUBLIC_SITE_URL)
+    const res = await fetch(process.env.NEXT_PUBLIC_SITE_URL + '/api/users', {
       cache: 'no-store'
     })
     if (!res.ok) throw new Error('Failed to fetch data')

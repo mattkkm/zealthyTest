@@ -53,10 +53,11 @@ export default function OnboardingPage() {
 
       const data = await response.json()
       router.push(`/onboarding/2?userId=${data.id}`)
-    } catch (error) {
+    } catch (error) { 
+      console.log('error-',error)
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: "Something went wrong. Please try again. Error: " + error,
         variant: "destructive",
       })
     } finally {
