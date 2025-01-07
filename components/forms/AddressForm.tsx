@@ -23,10 +23,11 @@ const formSchema = z.object({
 
 type AddressFormProps = {
   onSubmit: (data: z.infer<typeof formSchema>) => void
+  submitted: boolean
   defaultValues?: Partial<z.infer<typeof formSchema>>
 }
 
-export function AddressForm({ onSubmit, defaultValues = {} }: AddressFormProps) {
+export function AddressForm({ onSubmit, submitted, defaultValues = {} }: AddressFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -97,7 +98,7 @@ export function AddressForm({ onSubmit, defaultValues = {} }: AddressFormProps) 
             />
           </div>
         </div>
-        <Button type="submit" className="w-full">Save & Continue</Button>
+        {submitted ? <></>: <Button type="submit" className="w-full">Save & Continue</Button>}
       </form>
     </Form>
   )

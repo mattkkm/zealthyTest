@@ -1,16 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AboutMeForm } from '@/components/forms/AboutMeForm'
 import { AddressForm } from '@/components/forms/AddressForm'
 import { BirthdateForm } from '@/components/forms/BirthdateForm'
 
-export default function StepPage({ params }: { params: { step: string } }) {
+export default function StepPage({ params }: { params: Promise<{ step: string }> }) {
   const router = useRouter()
   const [components, setComponents] = useState<string[]>([])
-  const step = parseInt(params.step)
+  const [submittedComponents, setSubmittedComponents] = useState<{ [key: string]: boolean }>({})
+  // const step = parseInt(params.step)
+  const resolvedParams = use(params)
+  const step = parseInt(resolvedParams.step)
 
   useEffect(() => {
     fetchPageComponents()
@@ -20,7 +23,9 @@ export default function StepPage({ params }: { params: { step: string } }) {
     const res = await fetch('/api/admin')
     if (res.ok) {
       const data = await res.json()
+      console.log('data from onboarding-',data)
       const pageConfig = data.find((config: any) => config.page_number === step)
+      console.log('pageConfig-',pageConfig)
       if (pageConfig) {
         setComponents(pageConfig.components)
       }
@@ -30,7 +35,7 @@ export default function StepPage({ params }: { params: { step: string } }) {
   const handleSubmit = async (formData: any) => {
     const urlParams = new URLSearchParams(window.location.search)
     const userId = urlParams.get('userId')
-
+    console.log('userId-',userId)
     try {
       const res = await fetch(`/api/users/${userId}`, {
         method: 'PUT',
@@ -42,6 +47,32 @@ export default function StepPage({ params }: { params: { step: string } }) {
       })
 
       if (!res.ok) throw new Error('Failed to update user')
+      // Mark this component as submitted
+      console.log('formData-',formData)
+      const formKey = Object.keys(formData)[0]
+      const updatedComponents = {
+        ...submittedComponents,
+        [formKey]: true
+      }
+      setSubmittedComponents(updatedComponents)
+      console.log('submittedComponents-',updatedComponents) 
+      // Check if all components on this page have been submitted
+      const allSubmitted = components.every(component => {
+        switch (component) {
+          case 'about':
+            return updatedComponents['about_me']
+          case 'address':
+            return updatedComponents['street_address']
+          case 'birthdate':
+            return updatedComponents['birthdate']
+          default:
+            return false
+        }
+      })
+      console.log('allSubmitted-',allSubmitted)
+      if (!allSubmitted) {
+        return // Don't proceed to next page until all components are submitted
+      }
 
       // Navigate to next step or completion
       if (step < 3) {
@@ -60,9 +91,9 @@ export default function StepPage({ params }: { params: { step: string } }) {
         <CardTitle>Step {step} of 3</CardTitle>
       </CardHeader>
       <CardContent className="space-y-8">
-        {components.includes('about') && <AboutMeForm onSubmit={handleSubmit} />}
-        {components.includes('address') && <AddressForm onSubmit={handleSubmit} />}
-        {components.includes('birthdate') && <BirthdateForm onSubmit={handleSubmit} />}
+        {components.includes('about') && <AboutMeForm submitted={submittedComponents['about_me']} onSubmit={handleSubmit} />}
+        {components.includes('address') && <AddressForm submitted={submittedComponents['address']} onSubmit={handleSubmit} />}
+        {components.includes('birthdate') && <BirthdateForm submitted={submittedComponents['birthdate']} onSubmit={handleSubmit} />}
       </CardContent>
     </Card>
   )

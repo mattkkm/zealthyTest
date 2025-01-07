@@ -34,19 +34,35 @@ export default function AdminPage() {
     })
   }
 
-  const toggleComponent = (component: string, page: number) => {
+ const toggleComponent = (component: string, page: number) => {
     if (page === 2) {
-      const newComponents = page2Components.includes(component)
+      // If component is in page 3, remove it first
+      if (page3Components.includes(component)) {
+        const newPage3Components = page3Components.filter(c => c !== component)
+        setPage3Components(newPage3Components)
+        updateConfig(3, newPage3Components)
+      }
+      
+      // Toggle for page 2
+      const newPage2Components = page2Components.includes(component)
         ? page2Components.filter(c => c !== component)
         : [...page2Components, component]
-      setPage2Components(newComponents)
-      updateConfig(2, newComponents)
+      setPage2Components(newPage2Components)
+      updateConfig(2, newPage2Components)
     } else {
-      const newComponents = page3Components.includes(component)
+      // If component is in page 2, remove it first
+      if (page2Components.includes(component)) {
+        const newPage2Components = page2Components.filter(c => c !== component)
+        setPage2Components(newPage2Components)
+        updateConfig(2, newPage2Components)
+      }
+
+      // Toggle for page 3
+      const newPage3Components = page3Components.includes(component)
         ? page3Components.filter(c => c !== component)
         : [...page3Components, component]
-      setPage3Components(newComponents)
-      updateConfig(3, newComponents)
+      setPage3Components(newPage3Components)
+      updateConfig(3, newPage3Components)
     }
   }
 

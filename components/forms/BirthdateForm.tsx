@@ -25,9 +25,10 @@ const formSchema = z.object({
 type BirthdateFormProps = {
   onSubmit: (data: z.infer<typeof formSchema>) => void
   defaultValue?: string
+  submitted: boolean
 }
 
-export function BirthdateForm({ onSubmit, defaultValue }: BirthdateFormProps) {
+export function BirthdateForm({ onSubmit, defaultValue, submitted }: BirthdateFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,7 +52,7 @@ export function BirthdateForm({ onSubmit, defaultValue }: BirthdateFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Save & Continue</Button>
+        {submitted ? <></>: <Button type="submit" className="w-full">Save & Continue</Button>}
       </form>
     </Form>
   )
