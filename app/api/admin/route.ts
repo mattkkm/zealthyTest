@@ -15,17 +15,42 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const { pageNumber, components } = await request.json()
-  const { data, error } = await supabase
-    .from('admin_config')
-    .update({ components })
-    .eq('page_number', pageNumber)
-    .select()
-    .single()
+  try {
+    const { pageNumber, components } = await request.json()
+    
+    // First check if configuration exists
+    const { data: existingConfig } = await supabase
+      .from('admin_config')
+      .select()
+      .eq('page_number', pageNumber)
+    
+    let result;
+    
+    if (!existingConfig || existingConfig.length === 0) {
+      // If no configuration exists, create one
+      result = await supabase
+        .from('admin_config')
+        .insert([{ page_number: pageNumber, components }])
+        .select()
+    } else {
+      // If configuration exists, update it
+      result = await supabase
+        .from('admin_config')
+        .update({ components })
+        .eq('page_number', pageNumber)
+        .select()
+    }
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    const { data, error } = result
+
+    if (error) throw error
+    
+    return NextResponse.json(data[0])
+  } catch (error) {
+    console.error('Error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Failed to update configuration' },
+      { status: 400 }
+    )
   }
-
-  return NextResponse.json(data)
 }

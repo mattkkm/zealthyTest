@@ -23,9 +23,7 @@ export default function StepPage({ params }: { params: Promise<{ step: string }>
     const res = await fetch('/api/admin')
     if (res.ok) {
       const data = await res.json()
-      console.log('data from onboarding-',data)
       const pageConfig = data.find((config: any) => config.page_number === step)
-      console.log('pageConfig-',pageConfig)
       if (pageConfig) {
         setComponents(pageConfig.components)
       }
@@ -35,7 +33,6 @@ export default function StepPage({ params }: { params: Promise<{ step: string }>
   const handleSubmit = async (formData: any) => {
     const urlParams = new URLSearchParams(window.location.search)
     const userId = urlParams.get('userId')
-    console.log('userId-',userId)
     try {
       const res = await fetch(`/api/users/${userId}`, {
         method: 'PUT',
@@ -48,14 +45,12 @@ export default function StepPage({ params }: { params: Promise<{ step: string }>
 
       if (!res.ok) throw new Error('Failed to update user')
       // Mark this component as submitted
-      console.log('formData-',formData)
       const formKey = Object.keys(formData)[0]
       const updatedComponents = {
         ...submittedComponents,
         [formKey]: true
       }
       setSubmittedComponents(updatedComponents)
-      console.log('submittedComponents-',updatedComponents) 
       // Check if all components on this page have been submitted
       const allSubmitted = components.every(component => {
         switch (component) {
@@ -69,7 +64,6 @@ export default function StepPage({ params }: { params: Promise<{ step: string }>
             return false
         }
       })
-      console.log('allSubmitted-',allSubmitted)
       if (!allSubmitted) {
         return // Don't proceed to next page until all components are submitted
       }

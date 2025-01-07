@@ -11,7 +11,7 @@ async function getData() {
   
     return (
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">User Data</h1>
+        <h1 className="text-2xl font-bold mb-4">User Data ({data.length} users)</h1>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border border-gray-300">
             <thead>

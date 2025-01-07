@@ -18,7 +18,6 @@ export default function AdminPage() {
     const res = await fetch('/api/admin')
     if (res.ok) {
       const data = await res.json()
-      console.log('data from dmin-',data)
       data.forEach((config: any) => {
         if (config.page_number === 2) setPage2Components(config.components)
         if (config.page_number === 3) setPage3Components(config.components)
