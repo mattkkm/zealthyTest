@@ -5,9 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
-import { Search, Download, Filter, MoreHorizontal } from 'lucide-react'
+import { Search, Download, MoreHorizontal, Eye } from 'lucide-react'
 import { userService } from '@/lib/services/api/userService'
 import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { ColumnSelector } from '@/components/dialogs/ColumnSelector'
+import { saveAs } from 'file-saver'
+import Papa from 'papaparse'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { DeleteUserDialog } from "@/components/dialogs/DeleteUserDialog"
 
 interface User {
   id: string
@@ -23,6 +34,7 @@ export default function DataPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedColumns, setSelectedColumns] = useState(['email', 'current_step', 'created_at'])
 
   useEffect(() => {
     fetchUsers()
@@ -55,20 +67,96 @@ export default function DataPage() {
     return <Badge>New</Badge>
   }
 
+  const handleColumnToggle = (columnKey: string) => {
+    setSelectedColumns(prev => 
+      prev.includes(columnKey) 
+        ? prev.filter(col => col !== columnKey)
+        : [...prev, columnKey]
+    )
+  }
+
+  const renderCellContent = (user: User, key: string) => {
+    switch (key) {
+      case 'email':
+        return user.email
+      case 'current_step':
+        return (
+          <div className="space-y-1">
+            {getStatusBadge(user.current_step)}
+            <div className="flex items-center gap-2">
+              <div className="w-full bg-muted rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full ${getProgressColor(user.current_step)}`}
+                  style={{ width: `${(user.current_step / 3) * 100}%` }}
+                />
+              </div>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {Math.round((user.current_step / 3) * 100)}%
+              </span>
+            </div>
+          </div>
+        )
+      case 'about_me':
+        return user.about_me || '-'
+      case 'street_address':
+        return user.street_address || '-'
+      case 'birthdate':
+        return user.birthdate || '-'
+      case 'created_at':
+        return new Date(user.created_at).toLocaleDateString()
+      default:
+        return '-'
+    }
+  }
+
+  const handleExport = () => {
+    // Prepare data for export
+    const exportData = filteredUsers.map(user => {
+      const rowData: { [key: string]: any } = {}
+      selectedColumns.forEach(column => {
+        switch (column) {
+          case 'current_step':
+            rowData[column] = `${Math.round((user.current_step / 3) * 100)}% Complete`
+            break
+          case 'created_at':
+            rowData[column] = new Date(user.created_at).toLocaleDateString()
+            break
+          default:
+            rowData[column] = user[column as keyof User] || '-'
+        }
+      })
+      return rowData
+    })
+
+    // Convert to CSV
+    const csv = Papa.unparse(exportData)
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    saveAs(blob, `user-data-${new Date().toISOString().split('T')[0]}.csv`)
+  }
+
+  const handleUserDeleted = (userId: string) => {
+    setUsers(users.filter(user => user.id !== userId))
+  }
+
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-6 px-4 md:py-10 md:px-0">
       <Card className="bg-white/50 backdrop-blur-sm">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <CardTitle className="text-xl md:text-2xl font-bold">
               User Data {!loading && `(${users.length})`}
             </CardTitle>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                Filter
-              </Button>
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <ColumnSelector 
+                selectedColumns={selectedColumns}
+                onColumnToggle={handleColumnToggle}
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2"
+                onClick={handleExport}
+              >
                 <Download className="w-4 h-4" />
                 Export
               </Button>
@@ -88,46 +176,65 @@ export default function DataPage() {
           {loading ? (
             <div className="text-center py-8">Loading...</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{getStatusBadge(user.current_step)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${getProgressColor(user.current_step)}`}
-                            style={{ width: `${(user.current_step / 3) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {Math.round((user.current_step / 3) * 100)}%
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="relative rounded-lg border">
+              <div className="overflow-auto">
+                <div className="min-w-[800px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {selectedColumns.map((column) => (
+                          <TableHead 
+                            key={column} 
+                            className="whitespace-nowrap"
+                            style={{ minWidth: column === 'current_step' ? '200px' : '150px' }}
+                          >
+                            {column.split('_').map(word => 
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                            ).join(' ')}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          {selectedColumns.map((column) => (
+                            <TableCell 
+                              key={column} 
+                              className="truncate"
+                              style={{ minWidth: column === 'current_step' ? '200px' : '150px' }}
+                            >
+                              {renderCellContent(user, column)}
+                            </TableCell>
+                          ))}
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                  <span className="sr-only">Open menu</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem className="flex items-center gap-2">
+                                  <Eye className="w-4 h-4" />
+                                  View Details (Coming soon!)
+                                </DropdownMenuItem>
+                                <DeleteUserDialog 
+                                  userId={user.id}
+                                  userEmail={user.email}
+                                  onDelete={() => handleUserDeleted(user.id)}
+                                />
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

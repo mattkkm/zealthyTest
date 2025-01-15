@@ -56,5 +56,16 @@ export const userService = {
     } catch (error) {
       throw new Error(`Failed to get users: ${error.message}`)
     }
+  },
+
+  deleteUser: async (userId: string) => {  
+    console.log('Deleting user with ID:', userId)
+    const res = await fetch(`/api/users/${userId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!res.ok) throw new Error('Failed to delete user')
+    return res.json()
   }
 }
