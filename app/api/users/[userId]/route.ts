@@ -47,25 +47,16 @@ export async function GET(
   }
 }
 
-// import { NextResponse } from 'next/server'
-import { userService } from '@/lib/services/api/userService'
-
 export async function DELETE(
   request: Request,
-  { params }: { params: { userId: string } }  // Changed from id to userId
+  { params }: { params: { userId: string } } 
 ) {
-    console.log('IN DELETE')
-  console.log('DELETE request received for user:', params.userId)  // Changed from id to userId
-  console.log('Request method:', request.method)
-  console.log('Request URL:', request.url)
-  
   try {
 
     const { error } = await supabase
       .from('users')
       .delete()
       .eq('id', params.userId)
-          // await userService.deleteUser(params.userId)  // Changed from id to userId
     return NextResponse.json({ message: 'User deleted successfully' })
   } catch (error) {
     console.error('Error deleting user:', error)
