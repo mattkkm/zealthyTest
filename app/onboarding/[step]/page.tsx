@@ -54,9 +54,9 @@ export default function StepPage({ params }: { params: Promise<{ step: string }>
   }
 
   const handleFormChange = (data: any) => {
-    const newFormData = { ...formData, ...data }
-    setFormData(newFormData)
-    localStorage.setItem('onboardingData', JSON.stringify(newFormData))
+    const authFormData = { ...formData, ...data }
+    setFormData(authFormData)
+    localStorage.setItem('onboardingData', JSON.stringify(authFormData))
   }
 
   const handleNext = () => {

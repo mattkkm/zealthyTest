@@ -26,11 +26,11 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-interface NewFormProps {
+interface AuthFormProps {
   onComplete: (userId: string) => void
 }
 
-export function NewForm({ onComplete }: NewFormProps) {
+export function AuthForm({ onComplete }: AuthFormProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 

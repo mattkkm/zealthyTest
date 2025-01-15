@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AboutMeForm } from '@/components/forms/AboutMeForm'
 import { AddressForm } from '@/components/forms/AddressForm'
 import { BirthdateForm } from '@/components/forms/BirthdateForm'
-// import { SignUpForm } from '@/components/forms/SignUpForm'
-import { NewForm } from '@/components/forms/NewForm'
+import { AuthForm } from '@/components/forms/AuthForm'
 import { Button } from '@/components/ui/button'
 import { ProgressBar } from '@/components/layout/ProgressBar'
 import { adminService } from '@/lib/services/api/adminService'
 import { userService } from '@/lib/services/api/userService'
+import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react'
 
 interface PageConfig {
   page_number: number
@@ -64,9 +64,9 @@ export default function OnboardingPage() {
   }
 
   const handleFormChange = (data: any) => {
-    const newFormData = { ...formData, ...data }
-    setFormData(newFormData)
-    localStorage.setItem('onboardingData', JSON.stringify(newFormData))
+    const AuthFormData = { ...formData, ...data }
+    setFormData(AuthFormData)
+    localStorage.setItem('onboardingData', JSON.stringify(AuthFormData))
   }
 
   const handleNext = () => {
@@ -143,67 +143,85 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-3xl mx-auto px-4 py-8">
       {currentStep > 1 && (
         <ProgressBar 
           currentStep={currentStep}
           totalSteps={totalSteps}
-          // totalSteps={totalSteps - 1}
         />
       )}
-      <Card>
-        <CardHeader>
-          <CardTitle>
+      <Card className="shadow-lg border-t-4 border-t-primary">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">
             {currentStep === 1 
               ? "Create Your Account" 
               : `Step ${currentStep} of ${totalSteps}`}
           </CardTitle>
+          {currentStep === 1 && (
+            <p className="text-muted-foreground">
+              Join us to start your journey
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-8">
           {currentStep === 1 ? (
-            <NewForm onComplete={handleSignUpComplete} />
+            <AuthForm onComplete={handleSignUpComplete} />
           ) : (
             <>
-              {components.includes('about') && (
-                <AboutMeForm 
-                  value={formData.about_me} 
-                  onChange={(data) => handleFormChange({ about_me: data })} 
-                />
-              )}
-              {components.includes('address') && (
-                <AddressForm 
-                  value={formData.street_address} 
-                  onChange={(data) => handleFormChange({ street_address: data })} 
-                />
-              )}
-              {components.includes('birthdate') && (
-                <BirthdateForm 
-                  value={formData.birthdate} 
-                  onChange={(data) => handleFormChange({ birthdate: data })} 
-                />
-              )}
+              <div className="space-y-6">
+                {components.includes('about') && (
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <AboutMeForm 
+                      value={formData.about_me} 
+                      onChange={(data) => handleFormChange({ about_me: data })} 
+                    />
+                  </div>
+                )}
+                {components.includes('address') && (
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <AddressForm 
+                      value={formData.street_address} 
+                      onChange={(data) => handleFormChange({ street_address: data })} 
+                    />
+                  </div>
+                )}
+                {components.includes('birthdate') && (
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <BirthdateForm 
+                      value={formData.birthdate} 
+                      onChange={(data) => handleFormChange({ birthdate: data })} 
+                    />
+                  </div>
+                )}
+              </div>
 
-              <div className="flex justify-between">
+              <div className="flex justify-between pt-6 border-t">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleBack}
                   disabled={currentStep <= 2}
+                  className="flex items-center gap-2"
                 >
+                  <ArrowLeft className="w-4 h-4" />
                   Back
                 </Button>
                 {isLastStep ? (
                   <Button
                     onClick={handleSubmit}
                     disabled={!hasRequiredData || !userId}
+                    className="flex items-center gap-2"
                   >
-                    Submit All
+                    Complete
+                    <CheckCircle className="w-4 h-4" />
                   </Button>
                 ) : (
                   <Button
                     onClick={handleNext}
                     disabled={!hasRequiredData}
+                    className="flex items-center gap-2"
                   >
                     Next
+                    <ArrowRight className="w-4 h-4" />
                   </Button>
                 )}
               </div>
