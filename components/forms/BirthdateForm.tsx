@@ -1,59 +1,32 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import { format } from 'date-fns'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Label } from '@/components/ui/label'
 
 const formSchema = z.object({
-  birthdate: z.string().refine((val) => {
-    const date = new Date(val)
-    return !isNaN(date.getTime())
-  }, 'Please enter a valid date'),
+  birthdate: z.string().min(1, 'Birthdate is required'),
 })
 
-type BirthdateFormProps = {
-  onSubmit: (data: z.infer<typeof formSchema>) => void
-  defaultValue?: string
-  submitted: boolean
+interface BirthdateFormProps {
+  value?: string
+  onChange: (value: string) => void
 }
 
-export function BirthdateForm({ onSubmit, defaultValue, submitted }: BirthdateFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      birthdate: defaultValue || '',
-    },
-  })
-
+export function BirthdateForm({ value = '', onChange }: BirthdateFormProps) {
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="birthdate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Birthdate</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="birthdate">Birthdate</Label>
+        <Input
+          id="birthdate"
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="mt-1"
         />
-        {submitted ? <Button type="submit" disabled className="w-full">Saved</Button> : <Button type="submit" className="w-full">Save & Continue</Button>}
-      </form>
-    </Form>
+      </div>
+    </div>
   )
 }

@@ -13,47 +13,30 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Label } from '@radix-ui/react-label'
 
 const formSchema = z.object({
   about_me: z.string().min(10, 'Please write at least 10 characters'),
 })
 
-type AboutMeFormProps = {
-  onSubmit: (data: z.infer<typeof formSchema>) => void
-  defaultValue?: string
-  submitted: boolean
+interface AboutMeFormProps {
+  value?: string
+  onChange: (value: string) => void
 }
 
-export function AboutMeForm({ onSubmit, defaultValue = '', submitted }: AboutMeFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      about_me: defaultValue,
-    },
-  })
-
+export function AboutMeForm({ value = '', onChange }: AboutMeFormProps) {
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="about_me"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>About Me</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Tell us about yourself..."
-                  className="min-h-[100px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="about">About Me</Label>
+        <Textarea
+          id="about"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Tell us about yourself"
+          className="mt-1"
         />
-        {submitted ?<Button type="submit" disabled className="w-full">Saved</Button>  : <Button type="submit">Save & Continue</Button>}
-      </form>
-    </Form>
+      </div>
+    </div>
   )
 }

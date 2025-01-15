@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/services/config/supabase'
 
 export async function PUT(
   request: Request,
@@ -45,4 +45,33 @@ export async function GET(
       { status: 400 }
     )
   }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { userId: string } } 
+) {
+  try {
+
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', params.userId)
+    return NextResponse.json({ message: 'User deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting user:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete user' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Allow': 'DELETE, OPTIONS',
+    },
+  })
 }

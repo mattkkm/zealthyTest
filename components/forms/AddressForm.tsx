@@ -1,107 +1,32 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Label } from '@/components/ui/label'
 
 const formSchema = z.object({
-  street_address: z.string().min(1, 'Street address is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(1, 'State is required'),
-  zip: z.string().min(5, 'ZIP code must be at least 5 characters'),
+  street_address: z.string().min(5, 'Address must be at least 5 characters'),
 })
 
-type AddressFormProps = {
-  onSubmit: (data: z.infer<typeof formSchema>) => void
-  submitted: boolean
-  defaultValues?: Partial<z.infer<typeof formSchema>>
+interface AddressFormProps {
+  value?: string
+  onChange: (value: string) => void
 }
 
-export function AddressForm({ onSubmit, submitted, defaultValues = {} }: AddressFormProps) {
-  console.log('submitted-',submitted)
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      street_address: '',
-      city: '',
-      state: '',
-      zip: '',
-      ...defaultValues,
-    },
-  })
-
+export function AddressForm({ value = '', onChange }: AddressFormProps) {
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="street_address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Street Address</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="address">Address</Label>
+        <Input
+          id="address"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter your address"
+          className="mt-1"
         />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="city"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>City</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="state"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>State</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="zip"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ZIP</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        {submitted ? <Button type="submit" disabled className="w-full">Saved</Button> : <Button type="submit" className="w-full">Save & Continue</Button>}
-      </form>
-    </Form>
+      </div>
+    </div>
   )
 }
