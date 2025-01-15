@@ -52,6 +52,7 @@ export default function OnboardingPage() {
       }
 
       const data = await response.json()
+      // router.push(`/onboarding/2`)
       router.push(`/onboarding/2?userId=${data.id}`)
     } catch (error) { 
       console.log('error-',error)
