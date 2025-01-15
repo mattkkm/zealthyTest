@@ -8,7 +8,6 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Search, Download, MoreHorizontal, Eye } from 'lucide-react'
 import { userService } from '@/lib/services/api/userService'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { ColumnSelector } from '@/components/dialogs/ColumnSelector'
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
@@ -215,16 +214,18 @@ export default function DataPage() {
                                   <span className="sr-only">Open menu</span>
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem className="flex items-center gap-2">
+                              <DropdownMenuContent align="end" className="w-[160px]">
+                                <DropdownMenuItem className="flex items-center gap-2" disabled>
                                   <Eye className="w-4 h-4" />
                                   View Details (Coming soon!)
                                 </DropdownMenuItem>
-                                <DeleteUserDialog 
-                                  userId={user.id}
-                                  userEmail={user.email}
-                                  onDelete={() => handleUserDeleted(user.id)}
-                                />
+                                <DropdownMenuItem asChild>
+                                  <DeleteUserDialog 
+                                    userId={user.id}
+                                    userEmail={user.email}
+                                    onDelete={() => handleUserDeleted(user.id)}
+                                  />
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>

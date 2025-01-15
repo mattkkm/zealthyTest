@@ -7,23 +7,20 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Columns } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 
-interface Column {
-  key: string
-  label: string
-}
-
-const availableColumns: Column[] = [
+const AVAILABLE_COLUMNS = [
   { key: 'email', label: 'Email' },
   { key: 'current_step', label: 'Progress' },
   { key: 'about_me', label: 'About' },
   { key: 'street_address', label: 'Address' },
   { key: 'birthdate', label: 'Birthdate' },
   { key: 'created_at', label: 'Join Date' },
-]
+] as const
+
+type ColumnKey = typeof AVAILABLE_COLUMNS[number]['key']
 
 interface ColumnSelectorProps {
-  selectedColumns: string[]
-  onColumnToggle: (column: string) => void
+  selectedColumns: ColumnKey[]
+  onColumnToggle: (column: ColumnKey) => void
 }
 
 export function ColumnSelector({ selectedColumns, onColumnToggle }: ColumnSelectorProps) {
@@ -42,7 +39,7 @@ export function ColumnSelector({ selectedColumns, onColumnToggle }: ColumnSelect
         <Separator className="my-4" />
         <ScrollArea className="h-[300px] px-4">
           <div className="space-y-4">
-            {availableColumns.map((column) => (
+            {AVAILABLE_COLUMNS.map((column) => (
               <div 
                 key={column.key} 
                 className="flex items-center space-x-3 rounded-lg p-2 hover:bg-muted/50 transition-colors"

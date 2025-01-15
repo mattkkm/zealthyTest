@@ -28,24 +28,7 @@ export function DeleteUserDialog({ userId, userEmail, onDelete }: DeleteUserDial
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-
-        const data = await userService.deleteUser(userId)
-    //   const res = await fetch(`/api/users/${userId}`, {
-    //     method: 'DELETE',
-    //   })
-      
-    //   console.log('Delete response status:', res.status)
-    //   console.log('Delete response statusText:', res.statusText)
-      
-    //   if (!res.ok) {
-    //     const errorData = await res.json()
-    //     console.error('Error response:', errorData)
-    //     throw new Error(`Failed to delete user: ${res.statusText}`)
-    //   }
-      
-    //   const data = await res.json()
-      console.log('Delete success:', data)
-      
+      await userService.deleteUser(userId)
       toast({
         title: "Success",
         description: "User has been deleted",
@@ -53,10 +36,9 @@ export function DeleteUserDialog({ userId, userEmail, onDelete }: DeleteUserDial
       onDelete()
       setIsOpen(false)
     } catch (error) {
-      console.error('Delete error:', error)
       toast({
         title: "Error",
-        description: `Failed to delete user: ${error.message}`,
+        description: "Failed to delete user",
         variant: "destructive",
       })
     } finally {
@@ -67,9 +49,13 @@ export function DeleteUserDialog({ userId, userEmail, onDelete }: DeleteUserDial
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-          <Trash2 className="w-4 h-4" />
-          <span className="sr-only">Delete user</span>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full justify-start text-destructive hover:text-destructive"
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete User
         </Button>
       </DialogTrigger>
       <DialogContent>

@@ -2,14 +2,14 @@
 export interface User {
     id: string
     email: string
-    password: string
+    current_step: number
     about_me?: string
     street_address?: string
     city?: string
     state?: string
     zip?: string
     birthdate?: string
-    current_step: number
+    created_at: string
   }
   
   export interface AdminConfig {
