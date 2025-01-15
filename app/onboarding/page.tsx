@@ -1,126 +1,214 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import * as z from 'zod'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AboutMeForm } from '@/components/forms/AboutMeForm'
+import { AddressForm } from '@/components/forms/AddressForm'
+import { BirthdateForm } from '@/components/forms/BirthdateForm'
+// import { SignUpForm } from '@/components/forms/SignUpForm'
+import { NewForm } from '@/components/forms/NewForm'
 import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { useToast } from '@/hooks/use-toast'
+import { ProgressBar } from '@/components/layout/ProgressBar'
+import { adminService } from '@/lib/services/api/adminService'
+import { userService } from '@/lib/services/api/userService'
 
-const formSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-})
-
-type FormData = z.infer<typeof formSchema>
+interface PageConfig {
+  page_number: number
+  components: string[]
+}
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [pageConfigs, setPageConfigs] = useState<PageConfig[]>([])
+  const [formData, setFormData] = useState<{ [key: string]: any }>({})
+  const [userId, setUserId] = useState<string | null>(null)
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  })
+  useEffect(() => {
+    fetchInitialData()
+    initializeFromUrl()
+  }, [])
 
-  async function onSubmit(values: FormData) {
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create user')
-      }
-
-      const data = await response.json()
-      // router.push(`/onboarding/2`)
-      router.push(`/onboarding/2?userId=${data.id}`)
-    } catch (error) { 
-      console.log('error-',error)
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again. Error: " + error,
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
+  const initializeFromUrl = () => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const initialUserId = urlParams.get('userId')
+    if (initialUserId) {
+      setUserId(initialUserId)
+      window.history.replaceState({}, '', window.location.pathname)
     }
   }
 
+  const fetchInitialData = async () => {
+    loadFromLocalStorage()
+    await fetchPageConfigs()
+  }
+
+  const loadFromLocalStorage = () => {
+    const savedData = localStorage.getItem('onboardingData')
+    const savedUserId = localStorage.getItem('onboardingUserId')
+    const savedStep = localStorage.getItem('onboardingStep')
+    
+    if (savedData) setFormData(JSON.parse(savedData))
+    if (savedUserId) setUserId(savedUserId)
+    if (savedStep) setCurrentStep(parseInt(savedStep))
+  }
+
+  const fetchPageConfigs = async () => {
+    try {
+      const data = await adminService.getPageConfigs()
+      setPageConfigs(data.sort((a, b) => a.page_number - b.page_number))
+    } catch (error) {
+      console.error('Error fetching page configs:', error)
+    }
+  }
+
+  const handleFormChange = (data: any) => {
+    const newFormData = { ...formData, ...data }
+    setFormData(newFormData)
+    localStorage.setItem('onboardingData', JSON.stringify(newFormData))
+  }
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      const nextStep = currentStep + 1
+      setCurrentStep(nextStep)
+      localStorage.setItem('onboardingStep', nextStep.toString())
+    }
+  }
+
+  const handleBack = () => {
+    if (currentStep > 2) {
+      const prevStep = currentStep - 1
+      setCurrentStep(prevStep)
+      localStorage.setItem('onboardingStep', prevStep.toString())
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!userId) {
+      console.error('No userId found')
+      return
+    }
+
+    try {
+      await userService.updateUser(userId, {
+        ...formData,
+        current_step: totalSteps
+      })
+      
+      clearLocalStorage()
+      router.push('/onboarding/complete')
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  const clearLocalStorage = () => {
+    localStorage.removeItem('onboardingData')
+    localStorage.removeItem('onboardingUserId')
+    localStorage.removeItem('onboardingStep')
+  }
+  useEffect(() => {
+    if (userId) {
+      localStorage.setItem('onboardingUserId', userId)
+    }
+  }, [userId])
+
+  const currentPageConfig = pageConfigs.find(config => config.page_number === currentStep)
+  const components = currentPageConfig?.components || []
+  const totalSteps = pageConfigs.length > 0 
+    ? Math.max(...pageConfigs.map(config => config.page_number))
+    : 0
+
+  const isLastStep = currentStep === totalSteps
+  const hasRequiredData = components.every(component => {
+    switch (component) {
+      case 'about':
+        return !!formData.about_me
+      case 'address':
+        return !!formData.street_address
+      case 'birthdate':
+        return !!formData.birthdate
+      default:
+        return false
+    }
+  })
+
+  const handleSignUpComplete = (newUserId: string) => {
+    setUserId(newUserId)
+    setCurrentStep(2)
+    localStorage.setItem('onboardingStep', '2')
+    localStorage.setItem('onboardingUserId', newUserId)
+  }
+
   return (
-    <div className="container max-w-md mx-auto py-10">
+    <div className="max-w-2xl mx-auto">
+      {currentStep > 1 && (
+        <ProgressBar 
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          // totalSteps={totalSteps - 1}
+        />
+      )}
       <Card>
         <CardHeader>
-          <CardTitle>Create your account</CardTitle>
-          <CardDescription>
-            Start by entering your email and creating a password
-          </CardDescription>
+          <CardTitle>
+            {currentStep === 1 
+              ? "Create Your Account" 
+              : `Step ${currentStep} of ${totalSteps}`}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Enter your email" 
-                        type="email" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+        <CardContent className="space-y-8">
+          {currentStep === 1 ? (
+            <NewForm onComplete={handleSignUpComplete} />
+          ) : (
+            <>
+              {components.includes('about') && (
+                <AboutMeForm 
+                  value={formData.about_me} 
+                  onChange={(data) => handleFormChange({ about_me: data })} 
+                />
+              )}
+              {components.includes('address') && (
+                <AddressForm 
+                  value={formData.street_address} 
+                  onChange={(data) => handleFormChange({ street_address: data })} 
+                />
+              )}
+              {components.includes('birthdate') && (
+                <BirthdateForm 
+                  value={formData.birthdate} 
+                  onChange={(data) => handleFormChange({ birthdate: data })} 
+                />
+              )}
+
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={currentStep <= 2}
+                >
+                  Back
+                </Button>
+                {isLastStep ? (
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!hasRequiredData || !userId}
+                  >
+                    Submit All
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleNext}
+                    disabled={!hasRequiredData}
+                  >
+                    Next
+                  </Button>
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Create a password" 
-                        type="password" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating account..." : "Continue"}
-              </Button>
-            </form>
-          </Form>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -2,39 +2,34 @@
 import { supabase } from '../config/supabase'
 import type { User } from './types'
 
+interface UserData {
+  [key: string]: any
+}
+
 export const userService = {
-  async createUser(email: string, password: string): Promise<User> {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .insert([{ email, password, current_step: 1 }])
-        .select()
-        .single()
-
-      if (error) throw error
-      return data
-    } catch (error) {
-      throw new Error(`Failed to create user: ${error.message}`)
-    }
+  createUser: async (userData: { email: string, password: string }) => {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    })
+    
+    if (!res.ok) throw new Error('Failed to create user')
+    return res.json()
   },
 
-  async updateUser(userId: string, userData: Partial<User>): Promise<User> {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .update(userData)
-        .eq('id', userId)
-        .select()
-        .single()
+  updateUser: async (userId: string, userData: UserData) => {
+    const res = await fetch(`/api/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    })
 
-      if (error) throw error
-      return data
-    } catch (error) {
-      throw new Error(`Failed to update user: ${error.message}`)
-    }
+    if (!res.ok) throw new Error('Failed to update user')
+    return res.json()
   },
 
-  async getUserById(userId: string): Promise<User> {
+  getUserById: async (userId: string): Promise<User> => {
     try {
       const { data, error } = await supabase
         .from('users')
@@ -49,7 +44,7 @@ export const userService = {
     }
   },
 
-  async getAllUsers(): Promise<User[]> {
+  getAllUsers: async (): Promise<User[]> => {
     try {
       const { data, error } = await supabase
         .from('users')

@@ -7,7 +7,8 @@ type ProgressBarProps = {
 
 export function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   const progress = (currentStep / totalSteps) * 100
-
+  console.log('currentStep', currentStep)
+  console.log('totalSteps', totalSteps)
   return (
     <div className="w-full max-w-md mx-auto mb-8">
       <div className="flex justify-between mb-2">
